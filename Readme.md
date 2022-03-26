@@ -26,7 +26,7 @@ document [binance general info](https://binance-docs.github.io/apidocs/spot/en/#
 > ```
 > client := spot.NewAPI(
 >   <api-key>,
->   <api-secret>,<br>
+>   <api-secret>,
 >   url,
 >   timeout, // 0 is infinite
 >   proxies,
@@ -53,8 +53,8 @@ document [Binance Websocket](https://binance-docs.github.io/apidocs/spot/en/#web
 > kline stream is ```<symbol>@kline_<interval>```
 > 
 > ```
-> streams := make([]string, 0)<br>
-> stream, _ := NewKlineStreamType(symbol, interval)<br>
+> streams := make([]string, 0)
+> stream, _ := NewKlineStreamType(symbol, interval)
 > streams = append(streams, stream)
 > ```      
 > 
@@ -78,7 +78,7 @@ document [Binance Websocket](https://binance-docs.github.io/apidocs/spot/en/#web
 > }
 > ```
 > ```
-> err = ws.SubscribeKlineStreams(streams, handlerLogData, handlerOtherProcess)<br>
+> err = ws.SubscribeKlineStreams(streams, handlerLogData, handlerOtherProcess)
 > if err != nil {
 >   panic(err)
 > }
