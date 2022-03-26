@@ -1,0 +1,5 @@
+.idea
+
+# file on develop mode
+main.go
+binance-connector-golang.exe
