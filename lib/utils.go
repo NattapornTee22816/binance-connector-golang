@@ -7,7 +7,7 @@ import (
 )
 
 func GetTimestamp(offset int64) int64 {
-	return time.Now().UnixMilli() + offset
+	return time.Now().UnixMilli() - offset
 }
 
 func ConvertIntToTime(i int64, offset int64) time.Time {

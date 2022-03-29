@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	VERSION = "0.0.1-dev"
+	VERSION = "v0.0.1-beta"
 )
 
 type APIConfig struct {
@@ -63,7 +63,7 @@ func NewBasicAPI(key string, secret string) (*API, error) {
 	return NewAPI(
 		key,
 		secret,
-		"",
+		"https://api.binance.com",
 		0,
 		nil,
 		lib.LogLevelDebug,
@@ -193,6 +193,7 @@ func (r *API) sendRequest(httpMethod string, urlPath string, payload interface{}
 	}()
 	apiKey, signature := convertEndpointSecurityType(securityType)
 
+	queryString := ""
 	params := url.Values{}
 	if payload != nil && (reflect.ValueOf(payload).Kind() == reflect.Ptr && !reflect.ValueOf(payload).IsNil()) {
 		validate := validator.New()
@@ -207,19 +208,22 @@ func (r *API) sendRequest(httpMethod string, urlPath string, payload interface{}
 	}
 
 	if signature {
-		params.Add("timestamp", strconv.FormatInt(lib.GetTimestamp(r.offset), 10))
-		params.Add("signature", r.sign(params.Encode()))
+		params.Add("timestamp", strconv.FormatInt(lib.GetTimestamp(0), 10))
+		queryString = params.Encode()
+		queryString = fmt.Sprintf("%s&signature=%s", params.Encode(), r.sign(queryString))
+	} else if len(params) > 0 {
+		queryString = params.Encode()
 	}
 
 	header := http.Header{}
-	header.Add("Content-Type", "application/json;charset=utf-8")
+	header.Add("Content-Type", "application/x-www-form-urlencoded")
 	header.Add("User-Agent", fmt.Sprintf("binance-connector-golang/%s", VERSION))
 	if apiKey {
 		header.Add("X-MBX-APIKEY", r.key)
 	}
 
 	endpoint := fmt.Sprintf("%s%s", r.baseUrl, urlPath)
-	response, err := r.dispatchRequest(httpMethod, endpoint, header, params)
+	response, err := r.dispatchRequest(httpMethod, endpoint, header, queryString)
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +248,7 @@ func (r *API) sendRequest(httpMethod string, urlPath string, payload interface{}
 	return byteArray, nil
 }
 
-func (r *API) dispatchRequest(httpMethod string, endpoint string, header http.Header, payload url.Values) (*http.Response, error) {
+func (r *API) dispatchRequest(httpMethod string, endpoint string, header http.Header, payload string) (*http.Response, error) {
 	transport := &http.Transport{}
 	if proxy, ok := r.proxies["https"]; ok {
 		urlProxy, err := url.Parse(proxy)
@@ -270,7 +274,7 @@ func (r *API) dispatchRequest(httpMethod string, endpoint string, header http.He
 		req.Header = header
 	}
 	if len(payload) > 0 {
-		req.URL.RawQuery = payload.Encode()
+		req.URL.RawQuery = payload
 	}
 
 	if r.logger.CanDebug() {
